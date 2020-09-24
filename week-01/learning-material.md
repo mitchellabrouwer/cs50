@@ -2,15 +2,18 @@
 
 ## Basic types - specify type of variable at creation
 
-- int - integer, always (4 bytes). -2^31 to 2^31-1 (~-2 billion to ~2 billion)
-- char - single characters (1 byte)
-- float - has a decimal (real numbers) (4 bytes). Be careful with precision
-- double - decimal (8 bytes) - double precision
+- int (%i) - integer, always (4 bytes). -2^31 to 2^31-1 (~-2 billion to ~2 billion)
+- char (%c) - single characters (1 byte)
+- float (%f) - has a decimal (real numbers) (4 bytes). Be careful with precision
+- double (%f) - decimal (8 bytes) - double precision
 - void - no return type / placeholder for 'nothing'
 - bool - true or false
-- string - series of characters
+- string (%li) - series of characters
+- long
 - _Bool and String not built into C use #include <cs50.h> for course_
 - _note: 1 byte has 8 bits_
+- _%<letter> placeholder_
+- _%.2f -round float to 2 dp_
 
 ## Qualifiers - add precision to data type
 
