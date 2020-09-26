@@ -20,7 +20,7 @@ bool has_duplicates(string key, int length)
   return false;
 }
 
-bool is_alphabetic_only(string key, int length)
+bool is_alphabetic(string key, int length)
 {
   for (int i = 0; i < length; i++)
   {
@@ -39,7 +39,7 @@ bool key_validator(string key)
   {
     printf("%s", "Key must only contain 26 characters\n");
   }
-  else if (!is_alphabetic_only(key, length))
+  else if (!is_alphabetic(key, length))
   {
     printf("%s", "Key must only contain alphabet characters\n");
   }
