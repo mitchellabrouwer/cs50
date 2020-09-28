@@ -1,8 +1,6 @@
 #include <stdio.h>
 #include <cs50.h>
-#include <ctype.h>
 #include <string.h>
-#include <math.h>
 
 const int MAX = 9;
 
@@ -12,23 +10,28 @@ typedef struct
   int votes;
 } candidate;
 
-candidate candidates[MAX];
+candidate candidates[9];
+
+int candidate_count;
+
+int get_maximum_vote(void)
+{
+  int max = candidates[0].votes;
+  for (int i = 1; i < candidate_count; i++)
+  {
+    if (candidates[i].votes > max)
+    {
+      max = candidates[i].votes;
+    }
+  }
+  return max;
+}
 
 void print_winner(void)
 {
-  int maximum = candidates[0].votes;
+  int maximum = get_maximum_vote();
 
-  for (int i = 1; i < MAX; i++)
-  {
-    if (candidates[i].votes > maximum)
-    {
-      maximum = candidates[i].votes;
-    }
-  }
-
-  printf("%i\n", maximum);
-
-  for (int i = 0; i < MAX; i++)
+  for (int i = 0; i < candidate_count; i++)
   {
     if (candidates[i].votes == maximum)
     {
@@ -39,10 +42,11 @@ void print_winner(void)
 
 bool vote(string name)
 {
-  for (int i = 0; i < MAX; i++)
+  for (int i = 0; i < candidate_count; i++)
   {
-    if (candidates[i].name == name)
+    if (strcmp(candidates[i].name, name) == 0)
     {
+      candidates[i].votes++;
       return true;
     };
   }
@@ -58,14 +62,11 @@ int main(int argc, string argv[])
     candidates[i].votes = 0;
   }
 
-  int number_of_voters = get_int("Number of voters");
-  for (int i = 0; i < number_of_voters; i++)
+  candidate_count = get_int("Number of voters: ");
+  for (int i = 0; i < candidate_count; i++)
   {
-    string name = get_string("Vote:");
-    if (vote(name))
-    {
-      candidates[i].votes += 1;
-    }
+    string name = get_string("Vote: ");
+    vote(name);
   }
 
   print_winner();
