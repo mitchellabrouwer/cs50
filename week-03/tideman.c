@@ -98,46 +98,40 @@ int main(int argc, string argv[])
 }
 
 // linear search to get index of string in string array
-int get_index_of_candidate(string target)
+int get_index_of_candidate(string name)
 {
-  int index = 0;
   for (int i = 0; i < candidate_count; i++)
   {
-    if (strcmp(candidates[index]))
+    if (strcmp(candidates[i], name))
     {
-      return index;
+      return i;
     }
   }
   return -1;
 }
 
-// linear search to get index of string in string array
-int get_rank(int candidate_id int ranks[])
-{
-  int rank = 0;
-  for (int i = 0; i < candidate_count; i++)
-  {
-    if (ranks[i] == candidate_id)
-    {
-      return rank;
-    }
-  }
-  return -1;
-}
+// // linear search to get index of string in string array
+// int get_rank (int candidate_id, int ranks[])   {
+//     int rank = 0;
+//     for (int i = 0; i < candidate_count; i++) {
+//         if (ranks[i] == candidate_id){
+//             return rank;
+//         }
+//     }
+//     return -1;
+// }
 
 // Update ranks given a new vote
 bool vote(int rank, string name, int ranks[])
 {
 
-  for (int i = 0; i < candidate_count; i++)
+  int candidate_index = get_index_of_candidate(name);
+
+  if (candidate_index > -1)
   {
-    if (strcmp(candidates[i], name) == 0)
-    {
-      ranks[rank] = get_index_of_candidate(name);
-    }
+    ranks[rank] = candidate_index;
     return true;
   }
-
   return false;
 }
 
@@ -147,23 +141,9 @@ void record_preferences(int ranks[])
 
   for (int i = 0; i < candidate_count; i++)
   {
-    for (int j = 0; j < candidate_count; j++)
+    for (int j = i + 1; j < candidate_count; j++)
     {
-      if (i == j)
-      {
-        preferences[i][j] = 0
-      }
-      else
-      {
-        // remove these variables after testing
-        int candidate_rank_a = get_rank(i);
-        int candidate_rank_b = get_rank(j);
-
-        if (candidate_rank_a < candidate_rank_b)
-        {
-          preferences[i][j] += 1;
-        }
-      }
+      preferences[ranks[i]][ranks[j]]++;
     }
   }
 }
@@ -175,9 +155,13 @@ void add_pairs(void)
   {
     for (int j = 0; j < candidate_count; j++)
     {
-      int score_for = candidates[i][j] int score_against = candidates[j][i] if (score_for > 0 && score_for > score_against)
+      int score_for = candidates[i][j];
+      int score_against = candidates[j][i];
+      if (score_for > 0 && score_for > score_against)
       {
-        pair[]{i, j};
+        pairs[pair_count].winner = i;
+        pairs[pair_count].loser = j;
+        pair_count++;
       }
     }
   }
@@ -186,20 +170,65 @@ void add_pairs(void)
 // Sort pairs in decreasing order by strength of victory
 void sort_pairs(void)
 {
-  // TODO
-  return;
+  int swap_counter = -1;
+  int sorted_to = 0;
+
+  while (swap_counter != 0)
+  {
+    swap_counter = 0;
+    for (int i = 0; i < pair_count - 1; i++)
+    {
+      int strength_current = pairs[i].winner - pairs[i].loser;
+      int strength_next = pairs[i + 1].winner - pairs[i + 1].loser;
+      if (strength_next > strength_current)
+      {
+        pair temporary = pairs[i];
+        pairs[i] = pairs[i + 1];
+        pairs[i + 1] = temporary;
+        swap_counter++;
+      }
+    }
+  }
+
+  // for (int i = 0; i < pair_count; i++){
+  //     printf("winner: %i \n", pairs[i].winner);
+  //     printf("loswer: %i \n", pairs[i].loser);
+  // }
 }
 
 // Lock pairs into the candidate graph in order, without creating cycles
 void lock_pairs(void)
 {
-  // TODO
-  return;
+  for (int i = 0; i < pair_count; i++)
+  {
+    // if does not create a cycle??
+    locked[pairs[i].winner][pairs[i].loser] = true;
+  }
 }
 
 // Print the winner of the election
 void print_winner(void)
 {
-  // TODO
-  return;
+
+  int most_edges = 0;
+  string winner;
+
+  for (int i = 0; i < candidate_count; i++)
+  {
+    int edges = 0;
+    for (int j = 0; j < candidate_count; j++)
+    {
+      if (locked[i][j])
+      {
+        edges++;
+      }
+      if (edges > most_edges)
+      {
+        most_edges = edges;
+        winner = candidates[i];
+      }
+    }
+  }
+
+  printf("%s", winner);
 }
