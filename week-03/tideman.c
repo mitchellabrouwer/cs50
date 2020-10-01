@@ -100,9 +100,9 @@ int main(int argc, string argv[])
 // linear search to get index of string in string array
 int get_index_of_candidate(string name)
 {
-  for (int i = 0; i < candidate_count; i++)
+  for (int i = 0; i < candidate_count; ++i)
   {
-    if (strcmp(candidates[i], name))
+    if (strcmp(candidates[i], name) == 0)
     {
       return i;
     }
@@ -111,15 +111,18 @@ int get_index_of_candidate(string name)
 }
 
 // // linear search to get index of string in string array
-// int get_rank (int candidate_id, int ranks[])   {
-//     int rank = 0;
-//     for (int i = 0; i < candidate_count; i++) {
-//         if (ranks[i] == candidate_id){
-//             return rank;
-//         }
-//     }
-//     return -1;
-// }
+int get_rank(int candidate_id, int ranks[])
+{
+
+  for (int i = 0; i < candidate_count; i++)
+  {
+    if (ranks[i] == candidate_id)
+    {
+      return i;
+    }
+  }
+  return -1;
+}
 
 // Update ranks given a new vote
 bool vote(int rank, string name, int ranks[])
@@ -141,9 +144,13 @@ void record_preferences(int ranks[])
 
   for (int i = 0; i < candidate_count; i++)
   {
-    for (int j = i + 1; j < candidate_count; j++)
+    for (int j = 0; j < candidate_count; j++)
     {
-      preferences[ranks[i]][ranks[j]]++;
+
+      if (get_rank(i, ranks) < get_rank(j, ranks))
+      {
+        preferences[i][j] += 1;
+      }
     }
   }
 }
@@ -155,8 +162,9 @@ void add_pairs(void)
   {
     for (int j = 0; j < candidate_count; j++)
     {
-      int score_for = candidates[i][j];
-      int score_against = candidates[j][i];
+      int score_for = preferences[i][j];
+      int score_against = preferences[j][i];
+
       if (score_for > 0 && score_for > score_against)
       {
         pairs[pair_count].winner = i;
@@ -167,20 +175,29 @@ void add_pairs(void)
   }
 }
 
-// Sort pairs in decreasing order by strength of victory
+// Sort pairs in decreasing order by strength of victory - bubble sort
 void sort_pairs(void)
 {
   int swap_counter = -1;
-  int sorted_to = 0;
 
   while (swap_counter != 0)
   {
     swap_counter = 0;
     for (int i = 0; i < pair_count - 1; i++)
     {
-      int strength_current = pairs[i].winner - pairs[i].loser;
-      int strength_next = pairs[i + 1].winner - pairs[i + 1].loser;
-      if (strength_next > strength_current)
+
+      // get winners and losers of current and next
+      int winner = pairs[i].winner;
+      int loser = pairs[i].loser;
+      int next_winner = pairs[i + 1].winner;
+      int next_loser = pairs[i + 1].loser;
+
+      // calculate margins
+      int margin = preferences[winner][loser] - preferences[loser][winner];
+      int next_margin = preferences[next_winner][next_loser] - preferences[next_loser][next_winner];
+
+      // if bigger margin swap
+      if (next_margin > margin)
       {
         pair temporary = pairs[i];
         pairs[i] = pairs[i + 1];
@@ -189,11 +206,62 @@ void sort_pairs(void)
       }
     }
   }
+}
 
-  // for (int i = 0; i < pair_count; i++){
-  //     printf("winner: %i \n", pairs[i].winner);
-  //     printf("loswer: %i \n", pairs[i].loser);
+bool is_unique(int arr[], int length)
+{
+  for (int i = 0; i < length; i++)
+  {
+    for (int j = 0; j < length; j++)
+    {
+      printf("row %i \n", arr[i]);
+      printf("col %i \n", arr[j]);
+      // if (i != j && arr[i] == arr[j]) {
+      //     printf("not unique");
+      //     return false;
+      // }
+    }
+  }
+  printf("unique");
+  return true;
+}
+
+bool has_cycle()
+{
+  int length = 0;
+  int row_indexes[candidate_count];
+  int col_indexes[candidate_count];
+
+  for (int i = 0; i < candidate_count; i++)
+  {
+    for (int j = 0; j < candidate_count; j++)
+    {
+      if (locked[i][j] == true)
+      {
+        // printf("row %i \n", i);
+        // printf("col %i \n", j)
+        row_indexes[length] = i;
+        col_indexes[length] = j;
+
+        length++;
+      }
+    }
+  }
+
+  // for (int i = 0; i < length; i++) {
+  //     printf("row %i \n", row_indexes[length]);
+  //     printf("col %i \n", col_indexes[length]);
   // }
+
+  if (is_unique(row_indexes, length) && is_unique(col_indexes, length))
+  {
+    // printf("true");
+    return true;
+  }
+  else
+  {
+    return false;
+  }
 }
 
 // Lock pairs into the candidate graph in order, without creating cycles
@@ -201,8 +269,11 @@ void lock_pairs(void)
 {
   for (int i = 0; i < pair_count; i++)
   {
-    // if does not create a cycle??
     locked[pairs[i].winner][pairs[i].loser] = true;
+    if (has_cycle())
+    {
+      locked[pairs[i].winner][pairs[i].loser] = false;
+    }
   }
 }
 
