@@ -35,6 +35,7 @@ void print_winner(void);
 
 int main(int argc, string argv[])
 {
+
   // Check for invalid usage
   if (argc < 2)
   {
@@ -208,60 +209,23 @@ void sort_pairs(void)
   }
 }
 
-bool is_unique(int arr[], int length)
+bool will_cycle(int winner, int loser, int from)
 {
-  for (int i = 0; i < length; i++)
-  {
-    for (int j = 0; j < length; j++)
-    {
-      printf("row %i \n", arr[i]);
-      printf("col %i \n", arr[j]);
-      // if (i != j && arr[i] == arr[j]) {
-      //     printf("not unique");
-      //     return false;
-      // }
-    }
-  }
-  printf("unique");
-  return true;
-}
 
-bool has_cycle()
-{
-  int length = 0;
-  int row_indexes[candidate_count];
-  int col_indexes[candidate_count];
+  if (from == loser)
+  {
+    return true;
+  }
 
   for (int i = 0; i < candidate_count; i++)
   {
-    for (int j = 0; j < candidate_count; j++)
+    if ((locked[loser][i]) == true)
     {
-      if (locked[i][j] == true)
-      {
-        // printf("row %i \n", i);
-        // printf("col %i \n", j)
-        row_indexes[length] = i;
-        col_indexes[length] = j;
-
-        length++;
-      }
+      return will_cycle(loser, i, from);
     }
   }
 
-  // for (int i = 0; i < length; i++) {
-  //     printf("row %i \n", row_indexes[length]);
-  //     printf("col %i \n", col_indexes[length]);
-  // }
-
-  if (is_unique(row_indexes, length) && is_unique(col_indexes, length))
-  {
-    // printf("true");
-    return true;
-  }
-  else
-  {
-    return false;
-  }
+  return false;
 }
 
 // Lock pairs into the candidate graph in order, without creating cycles
@@ -269,37 +233,35 @@ void lock_pairs(void)
 {
   for (int i = 0; i < pair_count; i++)
   {
-    locked[pairs[i].winner][pairs[i].loser] = true;
-    if (has_cycle())
+    if (!will_cycle(pairs[i].winner, pairs[i].loser, pairs[i].winner))
     {
-      locked[pairs[i].winner][pairs[i].loser] = false;
+      locked[pairs[i].winner][pairs[i].loser] = true;
     }
   }
 }
 
 // Print the winner of the election
-void print_winner(void)
+bool is_winner(int candidate)
 {
-
-  int most_edges = 0;
-  string winner;
-
-  for (int i = 0; i < candidate_count; i++)
+  for (int j = 0; j < candidate_count; j++)
   {
-    int edges = 0;
-    for (int j = 0; j < candidate_count; j++)
+    if (locked[j][candidate])
     {
-      if (locked[i][j])
-      {
-        edges++;
-      }
-      if (edges > most_edges)
-      {
-        most_edges = edges;
-        winner = candidates[i];
-      }
+      return false;
     }
   }
+  return true;
+}
 
-  printf("%s", winner);
+void print_winner(void)
+{
+  for (int i = 0; i < candidate_count; i++)
+  {
+    if (is_winner(i))
+    {
+      printf("%s\n", candidates[i]);
+      break;
+    }
+  }
+  return;
 }
