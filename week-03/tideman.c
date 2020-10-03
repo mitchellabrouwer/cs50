@@ -98,7 +98,7 @@ int main(int argc, string argv[])
   return 0;
 }
 
-// linear search to get index of string in string array
+// Linear search to get index of string in string array
 int get_index_of_candidate(string name)
 {
   for (int i = 0; i < candidate_count; ++i)
@@ -176,6 +176,12 @@ void add_pairs(void)
   }
 }
 
+// Get difference between winning and losing scores
+int get_margin(int winner, int loser)
+{
+  return preferences[winner][loser] - preferences[loser][winner];
+}
+
 // Sort pairs in decreasing order by strength of victory - bubble sort
 void sort_pairs(void)
 {
@@ -187,17 +193,9 @@ void sort_pairs(void)
     for (int i = 0; i < pair_count - 1; i++)
     {
 
-      // get winners and losers of current and next
-      int winner = pairs[i].winner;
-      int loser = pairs[i].loser;
-      int next_winner = pairs[i + 1].winner;
-      int next_loser = pairs[i + 1].loser;
+      int margin = get_margin(pairs[i].winner, pairs[i].loser);
+      int next_margin = get_margin(pairs[i + 1].winner, pairs[i + 1].loser);
 
-      // calculate margins
-      int margin = preferences[winner][loser] - preferences[loser][winner];
-      int next_margin = preferences[next_winner][next_loser] - preferences[next_loser][next_winner];
-
-      // if bigger margin swap
       if (next_margin > margin)
       {
         pair temporary = pairs[i];
@@ -209,6 +207,7 @@ void sort_pairs(void)
   }
 }
 
+// Determine if adding a graph link will cycle
 bool will_cycle(int winner, int loser, int from)
 {
 
@@ -219,7 +218,7 @@ bool will_cycle(int winner, int loser, int from)
 
   for (int i = 0; i < candidate_count; i++)
   {
-    if ((locked[loser][i]) == true)
+    if ((locked[loser][i]) == true && will_cycle(loser, i, from))
     {
       return will_cycle(loser, i, from);
     }
@@ -241,27 +240,17 @@ void lock_pairs(void)
 }
 
 // Print the winner of the election
-bool is_winner(int candidate)
-{
-  for (int j = 0; j < candidate_count; j++)
-  {
-    if (locked[j][candidate])
-    {
-      return false;
-    }
-  }
-  return true;
-}
-
 void print_winner(void)
 {
   for (int i = 0; i < candidate_count; i++)
   {
-    if (is_winner(i))
+    for (int j = 0; j < candidate_count; j++)
     {
-      printf("%s\n", candidates[i]);
-      break;
+      if (!locked[j][i])
+      {
+        printf("%s\n", candidates[i]);
+        break;
+      }
     }
   }
-  return;
 }
