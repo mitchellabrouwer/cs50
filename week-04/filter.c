@@ -18,7 +18,7 @@ void grayscale(int height, int width, RGBTRIPLE image[height][width])
       int green = image[row][column].rgbtGreen;
       int blue = image[row][column].rgbtBlue;
 
-      int average = round((red + green + blue) / 3);
+      int average = round((red + green + blue) / 3.0);
 
       image[row][column].rgbtRed = average;
       image[row][column].rgbtGreen = average;
@@ -54,9 +54,7 @@ void reflect(int height, int width, RGBTRIPLE image[height][width])
 void blur(int height, int width, RGBTRIPLE image[height][width])
 {
 
-  int adjacent_count = 8;
-  int x[8] = {0, 1, -1, 0, -1, 1, -1, 1};
-  int y[8] = {1, 0, 0, -1, 1, -1, -1, 1};
+  RGBTRIPLE newImage[height][width];
 
   for (int row = 0; row < height; row++)
   {
@@ -66,24 +64,40 @@ void blur(int height, int width, RGBTRIPLE image[height][width])
       int sumRed = 0;
       int sumBlue = 0;
       int sumGreen = 0;
+      float squares = 0;
 
-      for (int d = 0; d < adjacent_count; d++)
+      for (int innerRow = -1; innerRow <= 1; innerRow++)
       {
-
-        int adjacentRow = row + y[d];
-        int adjacentColumn = column + y[d];
-
-        if (adjacentRow > 0 && adjacentRow < height - 1 && adjacentColumn > 0 && adjacentColumn < width - 1)
+        for (int innerColumn = -1; innerColumn <= 1; innerColumn++)
         {
-          sumRed += image[adjacentRow][adjacentColumn].rgbtRed;
-          sumBlue += image[adjacentRow][adjacentColumn].rgbtBlue;
-          sumGreen += image[adjacentRow][adjacentColumn].rgbtGreen;
+
+          int x = row + innerRow;
+          int y = column + innerColumn;
+
+          if (y > -1 && y < height && x > -1 && x < width)
+          {
+
+            sumRed += image[y][x].rgbtRed;
+            sumGreen += image[y][x].rgbtGreen;
+            sumBlue += image[y][x].rgbtBlue;
+            squares++;
+          }
         }
       }
 
-      image[row][column].rgbtRed = cap(round(sumRed / adjacent_count));
-      image[row][column].rgbtGreen = cap(round(sumGreen / adjacent_count));
-      image[row][column].rgbtBlue = cap(round(sumBlue / adjacent_count));
+      newImage[row][column].rgbtRed = round(sumRed / squares);
+      newImage[row][column].rgbtGreen = round(sumGreen / squares);
+      newImage[row][column].rgbtBlue = round(sumBlue / squares);
+    }
+  }
+
+  for (int row = 0; row < height; row++)
+  {
+    for (int column = 0; column < width; column++)
+    {
+      image[row][column].rgbtRed = newImage[row][column].rgbtRed;
+      image[row][column].rgbtGreen = newImage[row][column].rgbtGreen;
+      image[row][column].rgbtBlue = newImage[row][column].rgbtBlue;
     }
   }
 
@@ -94,7 +108,7 @@ void blur(int height, int width, RGBTRIPLE image[height][width])
 void edges(int height, int width, RGBTRIPLE image[height][width])
 {
 
-  int g_size = 9;
+  int inner_grid_size = 9;
   int x[9] = {-1, -1, -1, 0, 0, 0, 1, 1, 1};
   int y[9] = {-1, 0, 1, -1, 0, 1, -1, 0, 1};
 
@@ -117,39 +131,46 @@ void edges(int height, int width, RGBTRIPLE image[height][width])
       int green_gy = 0;
 
       // loop multiplier grid
-      for (int d = 0; d < g_size; d++)
+      for (int d = 0; d < inner_grid_size; d++)
       {
         int gridRow = row + y[d];
         int gridColumn = column + x[d];
 
-        if (gridRow > 0 && gridRow < height - 1 && gridColumn > 0 && gridColumn < width - 1)
+        if (gridRow > -1 && gridRow < height && gridColumn > -1 && gridColumn < width)
         {
 
           red_gx += image[gridRow][gridColumn].rgbtRed * gx[d];
           red_gy += image[gridRow][gridColumn].rgbtRed * gy[d];
 
+          green_gx += image[gridRow][gridColumn].rgbtGreen * gx[d];
+          green_gy += image[gridRow][gridColumn].rgbtGreen * gy[d];
+
           blue_gx += image[gridRow][gridColumn].rgbtBlue * gx[d];
           blue_gy += image[gridRow][gridColumn].rgbtBlue * gy[d];
-
-          red_gx += image[gridRow][gridColumn].rgbtGreen * gx[d];
-          red_gy += image[gridRow][gridColumn].rgbtGreen * gy[d];
         }
       }
 
-      printf("redgx %i \n", red_gx);
-      printf("red gy %i, \n", red_gy);
-      printf("blue gx %i, \n", blue_gx);
-      printf("blue gy %i, \n", blue_gy);
-      printf("green gx %i, \n", green_gx);
-      printf("green gy %i, \n", green_gy);
+      // printf("redgx %i \n", red_gx);
+      // printf("red gy %i, \n", red_gy);
+      // printf("blue gx %i, \n", blue_gx);
+      // printf("blue gy %i, \n", blue_gy);
+      // printf("green gx %i, \n", green_gx);
+      // printf("green gy %i, \n", green_gy);
 
-      image[row][column].rgbtRed = cap(round(sqrt((red_gx * red_gx) + (red_gy * red_gy))));
-      image[row][column].rgbtBlue = cap(round(sqrt((blue_gx * blue_gx) + (blue_gy * blue_gy))));
-      image[row][column].rgbtGreen = cap(round(sqrt((green_gx * green_gx) + (green_gy * green_gy))));
+      image[row][column].rgbtRed = (red_gx * red_gx) + (red_gy * red_gy);
+      image[row][column].rgbtBlue = (blue_gx * blue_gx) + (blue_gy * blue_gy);
+      image[row][column].rgbtGreen = (green_gx * green_gx) + (green_gy * green_gy);
+      // image[row][column].rgbtRed = red_gx;
+      // image[row][column].rgbtGreen = (green_gx * green_gx) +(green_gy * green_gy);
+      // image[row][column].rgbtBlue = red_gy;
 
-      // printf("%i red: \n",cap(round(sqrt((red_gx * red_gx) + (red_gy * red_gy)))));
-      // printf("%i blue: \n", cap(round(sqrt((blue_gx * blue_gx) + (blue_gy * blue_gy) ))));
-      // printf("%i green: \n", cap(round(sqrt((green_gx * green_gx) +(green_gy * green_gy)) )));
+      // printf("%hhu red: \n", image[row][column].rgbtRed);
+      // printf("%hhu blue: \n", image[row][column].rgbtBlue);
+      // printf("%hhu green: \n",  image[row][column].rgbtGreen);
+
+      // printf("%li red: \n", lround(sqrt((red_gx * red_gx) + (red_gy * red_gy))));
+      // printf("%li blue: \n", lround(sqrt((blue_gx * blue_gx) + (blue_gy * blue_gy) )));
+      // printf("%li green: \n", lround(sqrt((green_gx * green_gx) +(green_gy * green_gy)) ));
     }
   }
 
