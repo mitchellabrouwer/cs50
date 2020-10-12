@@ -42,19 +42,15 @@ bool check(const char *word)
 unsigned int hash(const char *word)
 {
   char alphabet[] = "abcdefghijklmnopqrstuvwxyz";
-  int index = -1;
+  int index = 0;
   for (int i = 0; i < N; i++)
   {
-    if (word[0] == alphabet[i])
+    if (tolower(word[0]) == alphabet[i])
     {
       index = i;
     }
   }
   return index;
-
-  // char letter = tolower(word[0]);
-  // int index = strcspn(ALPHABET, &letter);
-  // return index > -1 ? index : -1;
 }
 
 // Loads dictionary into memory, returning true if successful else false
@@ -74,10 +70,10 @@ bool load(const char *dictionary)
     table[i] = NULL;
   }
 
-  char word[LENGTH + 1];
+  char wordEntry[LENGTH + 1];
 
   //  while(i < size  &&  fscanf(m,"%d", &data[i++]) == 1);
-  while (fscanf(file, "%s\n", word) == 1)
+  while (fscanf(file, "%s\n", wordEntry) == 1)
   {
 
     // create node
@@ -88,21 +84,22 @@ bool load(const char *dictionary)
     }
 
     // copy word into node
-    strcpy(newNode->word, word);
+    strcpy(newNode->word, wordEntry);
 
-    // get pointer to head
-    node *head = table[hash(word)];
+    // get hash
+    int key = hash(wordEntry);
 
-    // add to front of list
-    if (head == NULL)
+    // if empty insert
+    if (table[key] == NULL)
     {
-      head = newNode;
+      table[key] = newNode;
       newNode->next = NULL;
     }
+    // shift to front of linked list
     else
     {
-      newNode->next = head->next;
-      head = newNode;
+      newNode->next = table[key];
+      table[key] = newNode;
     }
   }
 
